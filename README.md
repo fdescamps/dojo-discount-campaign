@@ -21,3 +21,21 @@ The age must be 25 or lower
 For the data analysis, all purchases of the calendar year (in this case: 2015) within the target group must be taken into consideration. The shop owner is interested in…
 the revenue aggregated by months (from January 2015 until December 2015)
 the total revenue throughout the entire year 2015
+
+## Expected output (we don't care of the "syntax")
+Revenue for students in 2015
+----------------------------
+Jan:  1155.36 €
+Feb:   476.43 €
+Mar:  1773.00 €
+Apr:  1415.22 €
+May:  1208.16 €
+Jun:  1454.00 €
+Jul:  1607.12 €
+Aug:  1317.84 €
+Sep:   976.02 €
+Oct:   767.35 €
+Nov:  1228.07 €
+Dec:  1582.14 €
+===============
+∑    14960.71 €
