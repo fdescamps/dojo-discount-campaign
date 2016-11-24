@@ -23,14 +23,45 @@ var WANTED_STATUS = ['student','pupil','apprentice'];
 var LIMIT_AGE = 25;
 var YEAR = 2015;
 
+/***************************** Utility functions **************************/
+
 /**
- * Find eligible orders
+ * Has to check if the customer has the right age (25) and the righ status : student, pupil, apprentice
  */
 var _isRightAgeAndStatus = (customer) => _.includes( WANTED_STATUS, customer.job) && customer.age<=LIMIT_AGE;
 var _hasAnOrderInYear = (year, order) => order.date>=year+"-01-01" && order.date<=year+"-12-31";
 var _filterEligibleOrders = (customer) => _.filter( customer.orders, ( order ) => _isRightAgeAndStatus( customer ) && _hasAnOrderInYear( YEAR, order ) );
 var _atLeastOneOrder = (orders) => !_.isEmpty( orders );
-var result = _.reduce( customers, ( result, customer, key ) => {
+var _addTheMonthNumber =  (orders) => _.map( orders, order => order.month = moment( order.date ).month() );
+var _groupOrdersByMonth = (orders) => _.groupBy( orders, 'month' );
+var _formatAmount = (amount) => parseFloat(amount).toFixed(2) +' €';
+var _totalByMonth = (month) => _.reduce( month, function(total, value) { return total + value.total; }, 0.0);
+var _formatMonthAndAmount = (month, total) => {
+	var result = {};
+	var label = moment().month(month).format("MMM");
+	result[label] = _formatAmount(total);
+	return result;
+}
+var _computeAmount = (orders) => {
+	var totalAmount = 0.0;
+	var totalByMonth = [];
+	_.forEach( orders, function(month, key) {
+		var total = _totalByMonth( month );
+		totalByMonth.push( _formatMonthAndAmount(key, total) );
+		totalAmount += total;
+	});
+	return {
+		totalAmount: totalAmount,
+		totalByMonth: totalByMonth
+	};
+}
+
+/********************************* CORE ALGO *************************/
+
+/**
+ * Find eligible orders
+ */
+var eligibleOrders = _.reduce( customers, ( result, customer, key ) => {
     var orders = _filterEligibleOrders( customer );
     if( _atLeastOneOrder( orders ) ){
        return _.concat( result, orders );
@@ -39,6 +70,22 @@ var result = _.reduce( customers, ( result, customer, key ) => {
 }, []);
 
 /**
+ * Compute the month for each order
+ */ 
+_addTheMonthNumber(eligibleOrders);
+
+/**
+ * Group orders by month
+ */
+var eligibleOrdersByMonth = _groupOrdersByMonth(eligibleOrders);
+
+/**
+ * Compute the global amount and the amount per month
+ */
+var result = _computeAmount(eligibleOrdersByMonth);
+
+/**
  * Display result
  */
-console.log( JSON.stringify( result, null, 4 ) );
+console.log( JSON.stringify( result.totalByMonth, null, 4 ) );
+console.log('Total: '+ _formatAmount(result.totalAmount) + ' (compute duration: '+ (moment()-start) +'ms)');
