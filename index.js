@@ -23,10 +23,15 @@ var WANTED_STATUS = ['student','pupil','apprentice'];
 var LIMIT_AGE = 25;
 var YEAR = 2015;
 
-var result = {};
+var result = _(customers)
+    .filter(customer => customer.age <= LIMIT_AGE && _.includes(WANTED_STATUS, customer.job))
+    .map(customer => customer.orders)
+    .flatten()
+    .filter(order => moment(order.date).year() === YEAR)
+    .value();
+
 
 /**
  * Display result
  */
-console.log( JSON.stringify( result.totalByMonth, null, 4 ) );
-console.log('Total: '+ result.totalAmount + ' (compute duration: '+ (moment()-start) +'ms)');
+console.log( JSON.stringify( result, null, 4 ) );
