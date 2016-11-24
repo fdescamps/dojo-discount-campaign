@@ -23,10 +23,22 @@ var WANTED_STATUS = ['student','pupil','apprentice'];
 var LIMIT_AGE = 25;
 var YEAR = 2015;
 
-var result = {};
+/**
+ * Find eligible orders
+ */
+var _isRightAgeAndStatus = (customer) => _.includes( WANTED_STATUS, customer.job) && customer.age<=LIMIT_AGE;
+var _hasAnOrderInYear = (year, order) => order.date>=year+"-01-01" && order.date<=year+"-12-31";
+var _filterEligibleOrders = (customer) => _.filter( customer.orders, ( order ) => _isRightAgeAndStatus( customer ) && _hasAnOrderInYear( YEAR, order ) );
+var _atLeastOneOrder = (orders) => !_.isEmpty( orders );
+var result = _.reduce( customers, ( result, customer, key ) => {
+    var orders = _filterEligibleOrders( customer );
+    if( _atLeastOneOrder( orders ) ){
+       return _.concat( result, orders );
+    }
+    return result;
+}, []);
 
 /**
  * Display result
  */
-console.log( JSON.stringify( result.totalByMonth, null, 4 ) );
-console.log('Total: '+ result.totalAmount + ' (compute duration: '+ (moment()-start) +'ms)');
+console.log( JSON.stringify( result, null, 4 ) );
