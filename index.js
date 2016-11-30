@@ -1,4 +1,4 @@
-var _ = require('lodash');
+var _ = require('lazy.js');
 var moment = require('moment');
 
 /*
@@ -24,19 +24,19 @@ var LIMIT_AGE = 25;
 var YEAR = 2015;
 
 var orders = _(customers)
-    .filter(customer => customer.age <= LIMIT_AGE && _.includes(WANTED_STATUS, customer.job))
+    .filter(customer => customer.age <= LIMIT_AGE && _(WANTED_STATUS).contains(customer.job))
     .map(customer => customer.orders)
     .flatten()
     .filter(order => moment(order.date).year() === YEAR)
     .value();
-
+    
 var result = _(orders)
-    .groupBy(order => moment(order.date).month())
-    .mapValues(orderByMonth => _.sumBy(orderByMonth,'total'))
+    .groupBy( order => moment(order.date).month())
+    .map( month => _(month).sum('total') )
     .value();
 
 /**
  * Display result
  */
-console.log( JSON.stringify( result, null, 4 ) );
-console.log('Total: '+ _.sum(_.valuesIn(result)) + ' (compute duration: '+ (moment()-start) +'ms)');
+console.log( 'Total: ' + JSON.stringify( result, null, 4 ) );
+console.log( 'Total: ' + _(result).sum() + ' (compute duration: '+ (moment()-start) +'ms) ');

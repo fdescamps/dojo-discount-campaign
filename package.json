@@ -6,6 +6,7 @@
   "author": "super developer",
   "license": "Unlicense",
   "dependencies": {
+    "lazy.js": "^0.4.2",
     "lodash": "^4.16.4",
     "moment": "^2.15.2"
   }
