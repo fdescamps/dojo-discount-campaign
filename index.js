@@ -23,17 +23,21 @@ const WANTED_STATUS = ['student','pupil','apprentice'];
 const LIMIT_AGE = 25;
 const YEAR = 2015;
 
-const isAnElligibleCustomer = customer => customer.age <= LIMIT_AGE && R.contains( customer.job, WANTED_STATUS );
-let result = R.filter( isAnElligibleCustomer, customers );
-result = R.map( customer => customer.orders , result );
-result = R.flatten( result );
-result = R.filter( order => moment(order.date).year() === YEAR, result );
+let filterCustomers = R.pipe( 
+    R.filter( customer => customer.age <= LIMIT_AGE && R.contains( customer.job, WANTED_STATUS ) ), 
+    R.map( customer => customer.orders ), 
+    R.flatten, 
+    R.filter( order => moment(order.date).year() === YEAR ) 
+);
+let result = filterCustomers( customers );
 
-let addMonth = R.map( order => { order.month = moment(order.date).month(); return order; }, result );
-let sortByMonth = R.sortBy( R.prop( 'month' ) );
-let ordersByMonth = R.groupWith( R.eqProps( 'month' ), sortByMonth( addMonth ) );
-let plus = (acc, order) => acc+order.total; 
-let sumByMonth = R.map( (orders) =>  R.reduce( plus, 0, orders ), ordersByMonth );
+let computeRevenus = R.pipe(
+    R.map( order => { order.month = moment(order.date).month(); return order; } ),
+    R.sortBy( R.prop( 'month' ) ),
+    R.groupWith( R.eqProps( 'month' ) ),
+    R.map( (orders) =>  R.reduce( (acc, order) => acc+order.total, 0, orders ) )
+);
+let sumByMonth = computeRevenus( result );
 
 /**
  * Display result
