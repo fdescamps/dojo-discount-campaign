@@ -24,28 +24,36 @@ const LIMIT_AGE = 25;
 const YEAR = 2015;
 
 /** Utils Method */
-const tranduce = (data, transducer) => data.reduce( transducer( reduce ), []);
 const reduce = (xs, x) => { xs.push(x); return xs; }
 const flatten = (f) => (reducing) => (result, input) => f(result,input);
 const mapping = (f) => (reducing) => (result, input) => reducing( result, f(input) );
 const filtering = (predicate) => (reducing) => (result, input) => predicate(input) ? reducing(result, input) : result;
 
-/** Algo Part 1 */
+/*
 const transduceCustomersInOrders = R.compose(
     filtering( customer => customer.age <= LIMIT_AGE && R.contains( customer.job, WANTED_STATUS ) ),
     mapping( customer => customer.orders ),
     flatten( (orders,customerOrders) => R.concat(orders, customerOrders) )
 );
-let customers = tranduce( data, transduceCustomersInOrders );
+let customers = data.reduce( transduceCustomersInOrders( reduce ), []);
 
-/** Algo Part 2 */
 const transduceOrdersInEuros = R.compose(
+    filtering( order => { return moment(order.date).year() === YEAR;} ),
+    mapping( order => { order.month = moment(order.date).month(); return order; } )
+);
+let orders = customers.reduce( transduceOrdersInEuros( reduce ), []);
+*/
+
+const transduceCustomersInOrders = R.compose(
+    filtering( customer => customer.age <= LIMIT_AGE && R.contains( customer.job, WANTED_STATUS ) ),
+    mapping( customer => customer.orders ),
+    flatten( (orders,customerOrders) => R.concat(orders, customerOrders) ),
     filtering( order => moment(order.date).year() === YEAR ),
     mapping( order => { order.month = moment(order.date).month(); return order; } )
 );
-let orders = tranduce( customers, transduceOrdersInEuros );
+let orders = data.reduce( transduceCustomersInOrders( reduce ), []);
+console.log('---> orders: ',JSON.stringify(orders));
 
-/** Algo Part 3 */
 let computeRevenus = R.pipe(
     R.sortBy( R.prop( 'month' ) ),
     R.groupWith( R.eqProps( 'month' ) ),
