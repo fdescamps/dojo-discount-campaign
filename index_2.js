@@ -23,38 +23,30 @@ const WANTED_STATUS = ['student','pupil','apprentice'];
 const LIMIT_AGE = 25;
 const YEAR = 2015;
 
+/** Put orders at a higher level and set for each other data (age,job) */
+const flattenOrders = 
+    R.flatten( 
+        R.map( customer => 
+            R.map( 
+                order => { order.age = customer.age; order.job = customer.job; return order; }, 
+                customer.orders 
+            ), 
+            data 
+        )
+    );
+
 /** Utils Method */
 const reduce = (xs, x) => { xs.push(x); return xs; }
-const flatten = (f) => (reducing) => (result, input) => f(result,input);
 const mapping = (f) => (reducing) => (result, input) => reducing( result, f(input) );
 const filtering = (predicate) => (reducing) => (result, input) => predicate(input) ? reducing(result, input) : result;
 
-/*
 const transduceCustomersInOrders = R.compose(
-    filtering( customer => customer.age <= LIMIT_AGE && R.contains( customer.job, WANTED_STATUS ) ),
-    mapping( customer => customer.orders ),
-    flatten( (orders,customerOrders) => R.concat(orders, customerOrders) )
-);
-let customers = data.reduce( transduceCustomersInOrders( reduce ), []);
-
-const transduceOrdersInEuros = R.compose(
-    filtering( order => { return moment(order.date).year() === YEAR;} ),
+    filtering( order => order.age <= LIMIT_AGE && R.contains( order.job, WANTED_STATUS ) && moment(order.date).year() === YEAR ),
     mapping( order => { order.month = moment(order.date).month(); return order; } )
 );
-let orders = customers.reduce( transduceOrdersInEuros( reduce ), []);
-*/
+const orders = flattenOrders.reduce( transduceCustomersInOrders( reduce ), []);
 
-const transduceCustomersInOrders = R.compose(
-    filtering( customer => customer.age <= LIMIT_AGE && R.contains( customer.job, WANTED_STATUS ) ),
-    mapping( customer => customer.orders ),
-    flatten( (orders,customerOrders) => R.concat(orders, customerOrders) ),
-    filtering( order => moment(order.date).year() === YEAR ),
-    mapping( order => { order.month = moment(order.date).month(); return order; } )
-);
-let orders = data.reduce( transduceCustomersInOrders( reduce ), []);
-console.log('---> orders: ',JSON.stringify(orders));
-
-let computeRevenus = R.pipe(
+const computeRevenus = R.pipe(
     R.sortBy( R.prop( 'month' ) ),
     R.groupWith( R.eqProps( 'month' ) ),
     R.map( (orders) =>  R.reduce( (acc, order) => acc+order.total, 0, orders ) )
